@@ -38,13 +38,13 @@ class Auth:
 
     def valid_login(self, email: str, password: str) -> bool:
         """Verifies user login details are valid"""
-        u = None
+        user = None
         try:
-            u = self._db.find_user_by(email=email)
-            if u is not None:
+            user = self._db.find_user_by(email=email)
+            if user is not None:
                 return bcrypt.checkpw(
                     password.encode("utf-8"),
-                    u.hashed_password,
+                    user.hashed_password,
                 )
         except NoResultFound:
             return False
@@ -52,27 +52,27 @@ class Auth:
 
     def create_session(self, email: str) -> str:
         """Creates user new session"""
-        u = None
+        user = None
         try:
-            u = self._db.find_user_by(email=email)
+            user = self._db.find_user_by(email=email)
         except NoResultFound:
             return None
-        if u is None:
+        if user is None:
             return None
         session_id = _generate_uuid()
-        self._db.update_user(u.id, session_id=session_id)
+        self._db.update_user(user.id, session_id=session_id)
         return session_id
 
     def get_user_from_session_id(self, session_id: str) -> Union[User, None]:
         """Gets user based on a given session ID"""
-        u = None
+        user = None
         if session_id is None:
             return None
         try:
-            u = self._db.find_user_by(session_id=session_id)
+            user = self._db.find_user_by(session_id=session_id)
         except NoResultFound:
             return None
-        return u
+        return user
 
     def destroy_session(self, user_id: int) -> None:
         """Destroys a session associated with a given user"""
@@ -82,29 +82,29 @@ class Auth:
 
     def get_reset_password_token(self, email: str) -> str:
         """Gets a psswrd reset token for user"""
-        u = None
+        user = None
         try:
-            u = self._db.find_user_by(email=email)
+            user = self._db.find_user_by(email=email)
         except NoResultFound:
-            u = None
-        if u is None:
+            user = None
+        if user is None:
             raise ValueError()
         reset_token = _generate_uuid()
-        self._db.update_user(u.id, reset_token=reset_token)
+        self._db.update_user(user.id, reset_token=reset_token)
         return reset_token
 
     def update_password(self, reset_token: str, password: str) -> None:
         """Updates user psswrd given the user's reset token"""
-        u = None
+        user = None
         try:
-            u = self._db.find_user_by(reset_token=reset_token)
+            user = self._db.find_user_by(reset_token=reset_token)
         except NoResultFound:
-            u = None
-        if u is None:
+            user = None
+        if user is None:
             raise ValueError()
         new_password_hash = _hash_password(password)
         self._db.update_user(
-            u.id,
+            user.id,
             hashed_password=new_password_hash,
             reset_token=None,
         )
