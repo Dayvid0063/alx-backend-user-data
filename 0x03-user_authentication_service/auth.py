@@ -74,6 +74,25 @@ class Auth:
             return None
         return user
 
+    def destroy_session(self, user_id: int) -> None:
+        """Destroys a session associated with a given user"""
+        if user_id is None:
+            return None
+        self._db.update_user(user_id, session_id=None)
+
+    def get_reset_password_token(self, email: str) -> str:
+        """Gets a psswrd reset token for user"""
+        u = None
+        try:
+            u = self._db.find_user_by(email=email)
+        except NoResultFound:
+            u = None
+        if u is None:
+            raise ValueError()
+        reset_token = _generate_uuid()
+        self._db.update_user(u.id, reset_token=reset_token)
+        return reset_token
+
     def update_password(self, reset_token: str, password: str) -> None:
         """Updates user psswrd given the user's reset token"""
         u = None
@@ -89,22 +108,3 @@ class Auth:
             hashed_password=new_password_hash,
             reset_token=None,
         )
-
-    def get_reset_password_token(self, email: str) -> str:
-        """Gets a psswrd reset token for user"""
-        u = None
-        try:
-            u = self._db.find_user_by(email=email)
-        except NoResultFound:
-            u = None
-        if u is None:
-            raise ValueError()
-        reset_token = _generate_uuid()
-        self._db.update_user(u.id, reset_token=reset_token)
-        return reset_token
-
-    def destroy_session(self, user_id: int) -> None:
-        """Destroys a session associated with a given user"""
-        if user_id is None:
-            return None
-        self._db.update_user(user_id, session_id=None)
