@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Mdule for authentication"""
+"""Module for authentication"""
 
 
 import bcrypt
+from typing import Union
 from sqlalchemy.orm.exc import NoResultFound
 from uuid import uuid4
-from typing import Union
 
 from db import DB
 from user import User
@@ -22,14 +22,14 @@ def _generate_uuid() -> str:
 
 
 class Auth:
-    """Class to interact with the auth BD"""
+    """Class to interact with the auth DB"""
 
     def __init__(self):
         """Initializes Auth instance"""
         self._db = DB()
 
     def register_user(self, email: str, password: str) -> User:
-        """Adds a new user to the DB"""
+        """Adds user to the DB"""
         try:
             self._db.find_user_by(email=email)
         except NoResultFound:
@@ -37,7 +37,7 @@ class Auth:
         raise ValueError("User {} already exists".format(email))
 
     def valid_login(self, email: str, password: str) -> bool:
-        """Verifies user login details are valid"""
+        """Verifies if user login details are valid"""
         user = None
         try:
             user = self._db.find_user_by(email=email)
@@ -51,7 +51,7 @@ class Auth:
         return False
 
     def create_session(self, email: str) -> str:
-        """Creates user new session"""
+        """Creates a new session for a user"""
         user = None
         try:
             user = self._db.find_user_by(email=email)
@@ -75,13 +75,13 @@ class Auth:
         return user
 
     def destroy_session(self, user_id: int) -> None:
-        """Destroys a session associated with a given user"""
+        """Destroys a session associated with a user"""
         if user_id is None:
             return None
         self._db.update_user(user_id, session_id=None)
 
     def get_reset_password_token(self, email: str) -> str:
-        """Gets a psswrd reset token for user"""
+        """Gets psswrd reset token for a user"""
         user = None
         try:
             user = self._db.find_user_by(email=email)
