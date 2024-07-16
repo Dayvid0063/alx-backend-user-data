@@ -49,9 +49,13 @@ class DB:
 
     def update_user(self, user_id: int, **kwargs) -> None:
         """Update a user's attributes and commit the changes to the database"""
-        user = self.find_user_by(id=user_id)
+        try:
+            usr = self.find_user_by(id=user_id)
+        except NoResultFound:
+            raise ValueError()
         for u, v in kwargs.items():
-            if not hasattr(user, u):
-                raise ValueError(f"Invalid attribute: {u}")
-            setattr(user, u, v)
+            if hasattr(usr, u):
+                setattr(usr, u, v)
+            else:
+                raise ValueError
         self._session.commit()
